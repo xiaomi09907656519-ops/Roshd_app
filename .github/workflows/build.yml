@@ -1,0 +1,37 @@
+name: ساخت برنامه رشد
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: دریافت فایل‌ها
+        uses: actions/checkout@v4
+
+      - name: نصب جاوا
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: استخراج پروژه
+        run: |
+          mkdir project
+          unzip -q Roshd_Android_v2_Persistent.zip -d project
+          PROJECT_DIR=$(dirname "$(find project -name gradlew -type f | head -n 1)")
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+
+      - name: ساخت APK
+        run: |
+          cd "$PROJECT_DIR"
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: تحویل APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: roshd-apk
+          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/app-debug.apk
